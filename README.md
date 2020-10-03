@@ -94,3 +94,10 @@ python manage.py runserver
     }
 ]
 ```
+
+## Testing
+In order to run tests, in your terminal sitting in the root folder (the directory that contains `manage.py`) and running the following:
+
+```bash
+pytest
+```
