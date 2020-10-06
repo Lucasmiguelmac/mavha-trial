@@ -47,7 +47,6 @@ python manage.py runserver
 | POST | /api/listings/<hash_id>/special-prices/ | Create a special price |
 | DELETE | /api/listings/<hash_id>/special-prices/<sp_id>/ | Delete a special price |
 | POST | /api/listings/<hash_id>/checkout/ | Calculate cost |
-| GET, POST, DELETE & PUT | /api/listings/ | Name |
 
 ### Show all listings
 
