@@ -1,19 +1,22 @@
 from listing.models import Listing, SpecialPrice
-from tests.conftest import SpecialPriceFactory, UserFactory, ListingFactory
+from tests.conftest import SpecialPriceFactory, UserFactory, ListingFactory, listing
 from account.models import User
 
 import pytest
 
+
+pytestmark = pytest.mark.django_db #
+
 class TestUser:
     
-    @pytest.mark.django_db
-    def test_create_user(self):
-        UserFactory(email='someone@gmail.com')
-
+    def test_create_user(self, user):
+        email = user.email # we instantiate user
         assert User.objects.all().count() == 1
-        assert User.objects.last().email == 'someone@gmail.com'
+        assert User.objects.last().email == email
 
-    @pytest.mark.django_db
+    def test_user__str__(self, user):
+        assert user.__str__() == user.email
+
     def test_incomplete_user(self):
         with pytest.raises(TypeError):
             User.objects.create_user()
@@ -22,7 +25,6 @@ class TestUser:
         with pytest.raises(TypeError):
             User.objects.create_user(email='', password="foo")
 
-    @pytest.mark.django_db
     def test_incomplete_superuser(self):
         with pytest.raises(ValueError):
             User.objects.create_superuser(
@@ -34,7 +36,6 @@ class TestUser:
 
 class TestListing:
 
-    @pytest.mark.django_db
     def test_create_listing(self):
         user = UserFactory.create()
         
@@ -46,12 +47,6 @@ class TestListing:
 
 class TestSpecialPrice:
 
-    @pytest.mark.django_db
-    def test_create_special_price(self):
-        user = UserFactory.create()
-        listing = ListingFactory.create(owner=user)
-
-        SpecialPriceFactory.create(listing=listing, price=23.00)
-
-        assert SpecialPrice.objects.all().count() == 1
-        assert SpecialPrice.objects.last().price == 23.00
+    def test_create_special_price(self, listing):
+        # listing_containing_prices = listing
+        assert SpecialPrice.objects.all().count() == 3

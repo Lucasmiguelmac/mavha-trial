@@ -8,6 +8,7 @@ from factory.django import DjangoModelFactory
 from datetime import datetime, timedelta
 import factory
 import random
+import pytest
 
 #======================================FACTORIES=======================================
 class UserFactory(DjangoModelFactory):
@@ -39,8 +40,16 @@ class SpecialPriceFactory(DjangoModelFactory):
     listing = factory.SubFactory(ListingFactory)
     date    = factory.Faker('date_object')
     price   = float(Decimal(random.randrange(500, 1000))/100)
+#=======================================FIXTURES=======================================
+@pytest.fixture
+def user():
+    return UserFactory()
 
-
+@pytest.fixture
+def listing():
+    listing = ListingFactory(owner=UserFactory())
+    SpecialPriceFactory.create_batch(3, listing=listing)
+    return listing
 #========================================UTILS=========================================
 def to_dict(instance):
     """

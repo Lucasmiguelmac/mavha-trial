@@ -47,28 +47,28 @@ class TestListingViews:
         assert response.status_code == 201
 
     @pytest.mark.django_db
-    def test_update_listing(self, rf):
-        user = UserFactory.create()
-        listing = ListingFactory.create(owner=user)
-        updated_listing = ListingFactory.build(owner=user)
+    def test_update_listing(self, rf, listing):
+        original_listing = listing
+        original_owner = listing.owner
+        updated_listing = ListingFactory.build(owner=original_owner)
         url = reverse('listing:listing', kwargs={'hash_id': listing.id.hashid})
         dict_data = to_dict(updated_listing)
-        dict_data['id'] = listing.id.hashid
-        dict_data['owner'] = user.id.hashid
+        dict_data['id'] = original_listing.id.hashid
+        dict_data['owner'] = original_owner.id.hashid
         post_data = json.dumps(dict_data)
         request = rf.put(url, post_data, content_type='application/json')
 
-        response = listing_viewset(request, listing.id.hashid).render()
+        response = listing_viewset(request, original_listing.id.hashid).render()
 
         assert response.status_code == 202
 
     @pytest.mark.django_db
-    def test_retrieve_listing(self, rf):
-        listing = ListingFactory()
-        url = reverse('listing:listing', kwargs={'hash_id': listing.id.hashid})
+    def test_retrieve_listing(self, rf, listing):
+        hash_id = listing.id.hashid
+        url = reverse('listing:listing', kwargs={'hash_id': hash_id})
         request = rf.delete(url)
 
-        response = listing_viewset(request, listing.id.hashid).render()
+        response = listing_viewset(request, hash_id).render()
         
         assert response.status_code == 204
         assert len(Listing.objects.all()) == 0
@@ -76,10 +76,11 @@ class TestListingViews:
 class TestSpecialPriceViews:
     
     @pytest.mark.django_db
-    def test_delete_special_price(self, rf):
-        listing = ListingFactory()
+    def test_delete_special_price(self, rf, listing):
         hash_id = listing.id.hashid
-        special_price = SpecialPriceFactory(listing=listing)
+        special_prices = SpecialPrice.objects.all()
+        special_price_count = special_prices.count()
+        special_price = special_prices.last()
         sp_id = special_price.id.hashid
         url = reverse(
             'listing:special-price',
@@ -92,12 +93,11 @@ class TestSpecialPriceViews:
         response = special_price_viewset(request, hash_id, sp_id).render()
 
         assert response.status_code == 204
-        assert len(SpecialPrice.objects.all()) == 0
+        assert len(SpecialPrice.objects.all()) == special_price_count - 1
 
     @pytest.mark.django_db
-    def test_calculate_special_price(self, rf):
+    def test_calculate_special_price(self, rf, listing):
         #Setup
-        listing = ListingFactory()
         checkin = '2020-10-28'
         checkout = '2020-11-5'
         date_format = '%Y-%m-%d'
@@ -130,4 +130,4 @@ class TestSpecialPriceViews:
 
         actual_total = response.data['total']
 
-        assert expected_total == actual_total
+        assert round(expected_total, 2) == actual_total

@@ -13,9 +13,9 @@ class TestListingSerializers:
         assert len(serializer.data) == 3
 
     @pytest.mark.django_db
-    def test_listing_serializer_serialization(self):
-        user = UserFactory()
-        json_data = to_dict(ListingFactory.build(owner=user))
+    def test_listing_serializer_serialization(self, listing):
+        user = listing.owner
+        json_data = to_dict(listing)
         # Add owner in serializer's format
         json_data['owner'] = user.id.hashid
         #Remove extra fields made by factory
@@ -29,8 +29,7 @@ class TestListingSerializers:
 class TestSpecialPriceSerializers:
     
     @pytest.mark.django_db
-    def test_serialization(self):
-        listing = ListingFactory()
+    def test_serialization(self, listing):
         json_data = to_dict(SpecialPriceFactory.build(listing=listing))
         json_data['listing'] = listing.id.hashid
         formated_date = str(json_data['date'])
